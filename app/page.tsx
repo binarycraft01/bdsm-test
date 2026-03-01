@@ -115,8 +115,8 @@ export default function HomePage() {
                 "inline-flex items-center justify-center rounded-2xl px-5 py-4 text-sm font-semibold transition",
                 "shadow-[0_12px_40px_-18px_rgba(59,130,246,0.9)]",
                 canStart
-                  ? "bg-gradient-to-r from-blue-500 to-cyan-400 text-white hover:brightness-110 active:brightness-95"
-                  : "cursor-not-allowed bg-white/10 text-white/40 shadow-none"
+                  ? "border border-white/15 bg-gradient-to-r from-blue-500 to-cyan-400 text-white hover:brightness-110 active:brightness-95"
+                  : "cursor-not-allowed border border-white/10 bg-white/10 text-white/40 shadow-none"
               )}
               onClick={(e) => {
                 if (!canStart) e.preventDefault();
