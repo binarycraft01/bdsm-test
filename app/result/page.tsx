@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { TRAITS, type TraitId } from "@/lib/traits";
-import { TRAIT_SCORE_LIMIT, clearResult, loadResult, type TraitScore } from "@/lib/score";
+import { clearResult, loadResult, type TraitScore } from "@/lib/score";
 
 /**
  * ✅ traits.ts 실제 구조에 1:1로 맞춘 메타 getter
@@ -60,7 +60,7 @@ function TopCard({ rank, s }: { rank: 1 | 2 | 3; s: TraitScore }) {
           <div className="mt-1 text-2xl font-semibold">{meta.title}</div>
           {meta.summary ? <div className="mt-2 text-sm text-black/60">{meta.summary}</div> : null}
         </div>
-        <div className="text-3xl font-semibold">{formatTraitPercent(s.percent)}</div>
+        <div className="text-3xl font-semibold">{formatPercent(s.percent)}</div>
       </div>
 
       <div className="mt-4">
@@ -93,7 +93,7 @@ function Row({ s }: { s: TraitScore }) {
     <div className="rounded-xl border border-black/10 p-4">
       <div className="flex items-center justify-between gap-4">
         <div className="font-medium">{meta.title}</div>
-        <div className="font-semibold">{formatTraitPercent(s.percent)}</div>
+        <div className="font-semibold">{formatPercent(s.percent)}</div>
       </div>
 
       <div className="mt-2">
@@ -413,7 +413,7 @@ export default function ResultPage() {
                 <div className="text-xs text-black/50">{idx + 1}위</div>
                 <div className="mt-1 font-semibold">{meta.title}</div>
                 <div className="mt-1 text-sm text-black/60">{meta.summary}</div>
-                <div className="mt-2 text-base font-semibold">{formatTraitPercent(score.percent)}</div>
+                <div className="mt-2 text-base font-semibold">{formatPercent(score.percent)}</div>
               </div>
             );
           })}
