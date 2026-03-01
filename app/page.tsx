@@ -10,8 +10,9 @@ function cn(...classes: Array<string | false | null | undefined>) {
 export default function HomePage() {
   const [isAdult, setIsAdult] = useState(false);
   const [agreesToContent, setAgreesToContent] = useState(false);
-
   const canStart = useMemo(() => isAdult && agreesToContent, [isAdult, agreesToContent]);
+
+
 
   return (
     <main className="theme-surface min-h-dvh bg-[#070A10] text-white">

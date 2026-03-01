@@ -179,3 +179,22 @@ html[data-theme="dark"] .theme-adaptive .bg-black\/10 {
 html[data-theme="dark"] .theme-adaptive .bg-black\/70 {
   background-color: rgba(229, 231, 235, 0.75) !important;
 }
+
+/* Developer mode notice (visible on all pages). */
+.dev-mode-banner {
+  border-color: rgba(250, 204, 21, 0.35);
+  background-color: rgba(250, 204, 21, 0.12);
+  color: #fef3c7;
+}
+
+html[data-theme="light"] .dev-mode-banner {
+  border-color: rgba(180, 83, 9, 0.35);
+  background-color: rgba(251, 191, 36, 0.22);
+  color: #78350f;
+}
+
+html[data-theme="dark"] .dev-mode-banner {
+  border-color: rgba(250, 204, 21, 0.35);
+  background-color: rgba(250, 204, 21, 0.12);
+  color: #fef3c7;
+}

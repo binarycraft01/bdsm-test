@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import ThemeToggle from "./components/theme-toggle";
+import DevModeNotice from "./components/dev-mode-notice";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://bdsm-test-pink.vercel.app"),
@@ -46,6 +47,7 @@ export default function RootLayout({
     <html lang="ko">
       <body className="antialiased">
         <ThemeToggle />
+        <DevModeNotice />
         {children}
         <Analytics />
       </body>

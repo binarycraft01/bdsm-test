@@ -94,7 +94,7 @@ export default function TestPage() {
 
   useEffect(() => {
     const syncDevControlVisibility = () => {
-      const count = Number(localStorage.getItem(DEV_THEME_TOGGLE_COUNT_KEY) ?? "0");
+      const count = Number(sessionStorage.getItem(DEV_THEME_TOGGLE_COUNT_KEY) ?? "0");
       setIsDevControlVisible(Number.isFinite(count) && count >= DEV_THEME_TOGGLE_UNLOCK_THRESHOLD);
     };
 
