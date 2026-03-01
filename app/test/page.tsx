@@ -250,9 +250,19 @@ export default function TestPage() {
   return (
     <main className="theme-adaptive mx-auto max-w-2xl px-4 py-10">
       <div className="mb-6">
-        <div className="text-sm text-black/60">
-          {stage === 1 ? "1차(가벼운 테스트)" : "2차(상세 테스트)"} · 진행률{" "}
-          {progress}%
+        <div className="flex items-center justify-between gap-3 text-sm text-black/60">
+          <span>
+            {stage === 1 ? "1차(가벼운 테스트)" : "2차(상세 테스트)"} · 진행률{" "}
+            {progress}%
+          </span>
+
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            className="rounded-lg border border-black/15 px-3 py-1.5 text-xs text-black/70 transition hover:bg-black/5"
+          >
+            홈으로
+          </button>
         </div>
         <h1 className="mt-2 text-2xl font-semibold">BDSM 성향 테스트</h1>
       </div>
