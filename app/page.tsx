@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  DEV_THEME_TOGGLE_COUNT_KEY,
+  DEV_THEME_TOGGLE_UNLOCK_THRESHOLD,
+} from "@/app/components/theme-toggle";
 
 function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -10,8 +14,23 @@ function cn(...classes: Array<string | false | null | undefined>) {
 export default function HomePage() {
   const [isAdult, setIsAdult] = useState(false);
   const [agreesToContent, setAgreesToContent] = useState(false);
+  const [isDeveloperMode, setIsDeveloperMode] = useState(false);
 
   const canStart = useMemo(() => isAdult && agreesToContent, [isAdult, agreesToContent]);
+
+  useEffect(() => {
+    const syncDeveloperMode = () => {
+      const count = Number(sessionStorage.getItem(DEV_THEME_TOGGLE_COUNT_KEY) ?? "0");
+      setIsDeveloperMode(Number.isFinite(count) && count >= DEV_THEME_TOGGLE_UNLOCK_THRESHOLD);
+    };
+
+    syncDeveloperMode();
+    window.addEventListener("dev-theme-unlocked", syncDeveloperMode);
+
+    return () => {
+      window.removeEventListener("dev-theme-unlocked", syncDeveloperMode);
+    };
+  }, []);
 
   return (
     <main className="theme-surface min-h-dvh bg-[#070A10] text-white">
@@ -23,6 +42,16 @@ export default function HomePage() {
       </div>
 
       <div className="mx-auto flex min-h-dvh max-w-3xl flex-col px-6 py-10">
+        {isDeveloperMode ? (
+          <div className="mb-6 rounded-2xl border border-amber-300/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
+            <div className="font-semibold">개발자 모드 테스트중</div>
+            <div className="mt-1 text-amber-100/90">
+              개발자 모드에 접속하셨네요. 해당 모드는 개발자 전용이므로, 일반 접속 대상자는
+              새로고침 후 일반 모드로 접속해 주세요.
+            </div>
+          </div>
+        ) : null}
+
         {/* Header */}
         <header className="pt-6 text-center">
           <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80">
