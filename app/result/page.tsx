@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { TRAITS, type TraitId } from "@/lib/traits";
 import { clearResult, loadResult, type TraitScore } from "@/lib/score";
 
@@ -91,23 +91,19 @@ function Row({ s }: { s: TraitScore }) {
 }
 
 export default function ResultPage() {
-  const [payload, setPayload] = useState<ReturnType<typeof loadResult> | null>(null);
+  const [payload] = useState<ReturnType<typeof loadResult> | null>(() => loadResult());
   const [expanded, setExpanded] = useState(false);
 
-  useEffect(() => {
-    setPayload(loadResult());
-  }, []);
-
   const top3 = payload?.top3 ?? [];
-  const scores = payload?.scores ?? [];
 
   /**
    * ✅ score.ts에서 이미 26개 trait를 0%까지 포함해 반환하도록 정리했으니
    * 여기서는 "정렬만" 수행하면 됨.
    */
   const scoresAll26 = useMemo(() => {
+    const scores = payload?.scores ?? [];
     return [...scores].sort((a, b) => b.percent - a.percent || a.trait.localeCompare(b.trait));
-  }, [scores]);
+  }, [payload]);
 
   if (!payload) {
     return (
