@@ -8,7 +8,7 @@ export type TraitScore = {
   sum: number;      // 가중치 반영 점수 합(답변 0~4 * weight 누적)
   denom: number;    // 정규화 분모(해당 trait의 최대 점수 합 = 4 * weight 누적)
   avg: number;      // 0~4 스케일 평균(정규화 기반 환산)
-  percent: number;  // 0~100
+  percent: number;  // -150~150 (중립=0)
 };
 
 export type ResultPayload = {
@@ -21,6 +21,7 @@ export type ResultPayload = {
 };
 
 const STORAGE_KEY = "bdsm_result_v1";
+export const TRAIT_SCORE_LIMIT = 150;
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
@@ -46,6 +47,7 @@ export function computeStage1Signal(
  * 2차 점수 계산:
  * - Question.map이 있는 문항만 반영
  * - trait마다 등장 횟수가 다르므로 "최대점수(4*weight)" 기반 정규화로 percent 산출
+ * - 0~4 평균값을 중립(2) 기준으로 재배치해 -150~150 범위로 확장
  * - 26개 trait를 항상 포함(등장 안 하면 0%)
  */
 export function computeTraitScores(
@@ -73,9 +75,13 @@ export function computeTraitScores(
   const scores: TraitScore[] = allTraitIds.map((trait) => {
     const v = acc.get(trait) ?? { sum: 0, denom: 0 };
     const max = v.denom; // 4*weight 누적
-    const rawPercent = max > 0 ? (v.sum / max) * 100 : 0;
-    const percent = Math.round(clamp(rawPercent, 0, 100));
-    const avg = (percent / 100) * 4;
+    const ratio = max > 0 ? v.sum / max : 0.5; // 0~1 (미응답은 중립)
+    const avg = ratio * 4;
+
+    // ratio(0~1) -> centered(-1~1) -> -150~150
+    const centered = (ratio - 0.5) * 2;
+    const rawPercent = centered * TRAIT_SCORE_LIMIT;
+    const percent = Math.round(clamp(rawPercent, -TRAIT_SCORE_LIMIT, TRAIT_SCORE_LIMIT) * 10) / 10;
 
     return {
       trait,
