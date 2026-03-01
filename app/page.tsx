@@ -14,23 +14,9 @@ function cn(...classes: Array<string | false | null | undefined>) {
 export default function HomePage() {
   const [isAdult, setIsAdult] = useState(false);
   const [agreesToContent, setAgreesToContent] = useState(false);
-  const [isDeveloperMode, setIsDeveloperMode] = useState(false);
-
   const canStart = useMemo(() => isAdult && agreesToContent, [isAdult, agreesToContent]);
 
-  useEffect(() => {
-    const syncDeveloperMode = () => {
-      const count = Number(sessionStorage.getItem(DEV_THEME_TOGGLE_COUNT_KEY) ?? "0");
-      setIsDeveloperMode(Number.isFinite(count) && count >= DEV_THEME_TOGGLE_UNLOCK_THRESHOLD);
-    };
 
-    syncDeveloperMode();
-    window.addEventListener("dev-theme-unlocked", syncDeveloperMode);
-
-    return () => {
-      window.removeEventListener("dev-theme-unlocked", syncDeveloperMode);
-    };
-  }, []);
 
   return (
     <main className="theme-surface min-h-dvh bg-[#070A10] text-white">
