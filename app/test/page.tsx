@@ -1,7 +1,7 @@
 // app/test/page.tsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Likert5, Question } from "@/lib/questions";
 import { STAGE1_QUESTIONS, STAGE2_QUESTIONS } from "@/lib/questions";
@@ -13,6 +13,10 @@ import {
   type TraitScore,
 } from "@/lib/score";
 import { TRAITS, type TraitId } from "@/lib/traits";
+import {
+  DEV_THEME_TOGGLE_COUNT_KEY,
+  DEV_THEME_TOGGLE_UNLOCK_THRESHOLD,
+} from "@/app/components/theme-toggle";
 
 const LIKERT: { label: string; value: Likert5 }[] = [
   { label: "전혀 아니다", value: 0 },
@@ -86,6 +90,23 @@ export default function TestPage() {
     stage === 1 ? answersStage1[q.id] : answersStage2[q.id];
 
   const progress = Math.round(((index + 1) / questions.length) * 100);
+  const [isDevControlVisible, setIsDevControlVisible] = useState(false);
+
+  useEffect(() => {
+    const syncDevControlVisibility = () => {
+      const count = Number(localStorage.getItem(DEV_THEME_TOGGLE_COUNT_KEY) ?? "0");
+      setIsDevControlVisible(Number.isFinite(count) && count >= DEV_THEME_TOGGLE_UNLOCK_THRESHOLD);
+    };
+
+    syncDevControlVisibility();
+    window.addEventListener("storage", syncDevControlVisibility);
+    window.addEventListener("dev-theme-unlocked", syncDevControlVisibility);
+
+    return () => {
+      window.removeEventListener("storage", syncDevControlVisibility);
+      window.removeEventListener("dev-theme-unlocked", syncDevControlVisibility);
+    };
+  }, []);
 
   function setAnswer(v: Likert5) {
     if (stage === 1) setAnswersStage1((prev) => ({ ...prev, [q.id]: v }));
@@ -121,6 +142,47 @@ export default function TestPage() {
     setStage(2);
     setView("quiz");
     setIndex(0);
+  }
+
+  function autoCompleteStageAndContinue(fillValue: Likert5 = 2) {
+    if (stage === 1) {
+      const filledStage1: Record<string, Likert5> = {};
+      STAGE1_QUESTIONS.forEach((question) => {
+        filledStage1[question.id] = answersStage1[question.id] ?? fillValue;
+      });
+
+      setAnswersStage1(filledStage1);
+
+      const signal = computeStage1Signal(filledStage1);
+      const s1Scores = computeTraitScores(STAGE1_QUESTIONS, filledStage1);
+      const top3 = s1Scores.length ? pickTop3(s1Scores) : undefined;
+
+      setStage1Preview({ signal, top3 });
+      setView("stage1Result");
+      return;
+    }
+
+    const filledStage2: Record<string, Likert5> = {};
+    STAGE2_QUESTIONS.forEach((question) => {
+      filledStage2[question.id] = answersStage2[question.id] ?? fillValue;
+    });
+
+    setAnswersStage2(filledStage2);
+
+    const stage1Signal = computeStage1Signal(answersStage1);
+    const scores = computeTraitScores(STAGE2_QUESTIONS, filledStage2);
+    const top3 = pickTop3(scores);
+
+    saveResult({
+      version: 1,
+      createdAt: new Date().toISOString(),
+      answersStage2: filledStage2,
+      stage1Signal,
+      scores,
+      top3,
+    });
+
+    router.push("/result");
   }
 
   function finishStage2AndGoResult() {
@@ -238,6 +300,19 @@ export default function TestPage() {
             본 테스트 시작하기
           </button>
 
+          {isDevControlVisible ? (
+            <button
+              type="button"
+              onClick={() => {
+                startStage2();
+                setTimeout(() => autoCompleteStageAndContinue(), 0);
+              }}
+              className="rounded-xl border border-black/15 px-4 py-2 text-sm hover:bg-black/5"
+            >
+              2차 자동완료 후 결과 보기
+            </button>
+          ) : null}
+
           <button
             type="button"
             onClick={() => {
@@ -283,6 +358,11 @@ export default function TestPage() {
           </button>
         </div>
         <h1 className="mt-2 text-2xl font-semibold">BDSM 성향 테스트</h1>
+        {isDevControlVisible ? (
+          <p className="mt-2 text-xs text-black/50">
+            개발자 모드: 자동완료 버튼으로 남은 문항을 한 번에 채울 수 있어요.
+          </p>
+        ) : null}
       </div>
 
       <div className="rounded-2xl border border-black/10 bg-white p-6">
@@ -329,23 +409,35 @@ export default function TestPage() {
           {index + 1} / {questions.length}
         </div>
 
-        <button
-          type="button"
-          onClick={goNext}
-          disabled={currentAnswer === undefined}
-          className={[
-            "rounded-xl px-4 py-2 text-sm",
-            currentAnswer === undefined
-              ? "bg-black/10 text-black/30"
-              : "bg-black text-white hover:opacity-90",
-          ].join(" ")}
-        >
-          {index === questions.length - 1
-            ? stage === 1
-              ? "1차 결과 보기"
-              : "결과 보기"
-            : "다음"}
-        </button>
+        <div className="flex items-center gap-2">
+          {isDevControlVisible ? (
+            <button
+              type="button"
+              onClick={() => autoCompleteStageAndContinue()}
+              className="rounded-xl border border-black/15 px-3 py-2 text-xs hover:bg-black/5"
+            >
+              남은 문항 자동완료
+            </button>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={goNext}
+            disabled={currentAnswer === undefined}
+            className={[
+              "rounded-xl px-4 py-2 text-sm",
+              currentAnswer === undefined
+                ? "bg-black/10 text-black/30"
+                : "bg-black text-white hover:opacity-90",
+            ].join(" ")}
+          >
+            {index === questions.length - 1
+              ? stage === 1
+                ? "1차 결과 보기"
+                : "결과 보기"
+              : "다음"}
+          </button>
+        </div>
       </div>
     </main>
   );
