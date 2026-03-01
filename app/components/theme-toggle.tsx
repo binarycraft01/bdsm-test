@@ -28,12 +28,24 @@ export default function ThemeToggle() {
     localStorage.setItem(STORAGE_KEY, theme);
   }, [theme]);
 
+  useEffect(() => {
+    const resetDevModeOnUnload = () => {
+      sessionStorage.removeItem(DEV_TOGGLE_COUNT_KEY);
+    };
+
+    window.addEventListener("beforeunload", resetDevModeOnUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", resetDevModeOnUnload);
+    };
+  }, []);
+
   function toggleTheme() {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
 
-    const current = Number(localStorage.getItem(DEV_TOGGLE_COUNT_KEY) ?? "0");
+    const current = Number(sessionStorage.getItem(DEV_TOGGLE_COUNT_KEY) ?? "0");
     const next = Number.isFinite(current) ? current + 1 : 1;
-    localStorage.setItem(DEV_TOGGLE_COUNT_KEY, String(next));
+    sessionStorage.setItem(DEV_TOGGLE_COUNT_KEY, String(next));
 
     if (next >= DEV_TOGGLE_UNLOCK_THRESHOLD) {
       window.dispatchEvent(new Event("dev-theme-unlocked"));
