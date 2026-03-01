@@ -149,7 +149,7 @@ export default function TestPage() {
     const { signal, top3 } = stage1Preview;
 
     return (
-      <main className="mx-auto max-w-2xl px-4 py-10">
+      <main className="theme-adaptive mx-auto max-w-2xl px-4 py-10">
         <div className="mb-6">
           <div className="text-sm text-black/60">1차(가벼운 테스트) 결과</div>
           <h1 className="mt-2 text-2xl font-semibold">가벼운 결과지</h1>
@@ -248,7 +248,7 @@ export default function TestPage() {
   // Quiz View (stage1 or stage2)
   // ==========================
   return (
-    <main className="mx-auto max-w-2xl px-4 py-10">
+    <main className="theme-adaptive mx-auto max-w-2xl px-4 py-10">
       <div className="mb-6">
         <div className="text-sm text-black/60">
           {stage === 1 ? "1차(가벼운 테스트)" : "2차(상세 테스트)"} · 진행률{" "}

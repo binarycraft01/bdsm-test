@@ -32,7 +32,7 @@ export default function GuideIndexPage() {
   }, [q]);
 
   return (
-    <main className="min-h-dvh bg-[#070A10] text-white">
+    <main className="theme-surface min-h-dvh bg-[#070A10] text-white">
       {/* bg glow */}
       <div className="pointer-events-none fixed inset-0 -z-10">
         <div className="absolute -top-24 left-1/2 h-[380px] w-[780px] -translate-x-1/2 rounded-full bg-blue-600/18 blur-3xl" />
