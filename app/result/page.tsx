@@ -39,10 +39,14 @@ function Bar({ percent }: { percent: number }) {
   );
 }
 
+function clampPercent(percent: number) {
+  if (!Number.isFinite(percent)) return 0;
+  return Math.max(0, Math.min(100, percent));
+}
 
-function formatTraitPercent(percent: number) {
-  const n = Math.round(percent * 10) / 10;
-  return `${n > 0 ? "+" : ""}${n}%`;
+function formatPercent(percent: number) {
+  const normalized = Number.isFinite(percent) ? percent : 0;
+  return Number.isInteger(normalized) ? `${normalized}%` : `${normalized.toFixed(1)}%`;
 }
 
 function TopCard({ rank, s }: { rank: 1 | 2 | 3; s: TraitScore }) {
@@ -259,7 +263,7 @@ export default function ResultPage() {
 
       ctx.fillStyle = "#0f172a";
       ctx.font = "700 34px sans-serif";
-      ctx.fillText(`${score.percent}%`, width - 220, y + 20);
+      ctx.fillText(formatPercent(score.percent), width - 220, y + 20);
     });
 
     const scoreStartY = 640;
@@ -277,12 +281,12 @@ export default function ResultPage() {
 
       ctx.fillStyle = "#0f172a";
       ctx.font = "700 22px sans-serif";
-      ctx.fillText(`${score.percent}%`, width - 170, y);
+      ctx.fillText(formatPercent(score.percent), width - 170, y);
 
       ctx.fillStyle = "#e2e8f0";
       ctx.fillRect(380, y - 16, 680, 12);
       ctx.fillStyle = "#0f172a";
-      ctx.fillRect(380, y - 16, (680 * score.percent) / 100, 12);
+      ctx.fillRect(380, y - 16, (680 * clampPercent(score.percent)) / 100, 12);
     });
 
     return canvas;
@@ -470,6 +474,60 @@ export default function ResultPage() {
                 <div className="mt-1 font-semibold">{meta.title}</div>
                 <div className="mt-1 text-sm text-black/60">{meta.summary}</div>
                 <div className="mt-2 text-base font-semibold">{score.percent}%</div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 rounded-xl border border-black/10 p-3">
+          <div className="text-sm font-semibold">안전 안내</div>
+          <div className="mt-1 text-xs text-black/70">
+            결과는 참고용이며 현실에서는 합의(consent), 안전, 중단 신호, 사후 케어를 우선하세요.
+          </div>
+        </div>
+      </div>
+
+
+      <div ref={reportRef} className="mb-5 rounded-2xl border border-black/10 bg-white p-5" aria-label="결과 요약 보고서">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="text-sm font-semibold">결과지 다운로드</div>
+            <div className="mt-1 text-xs text-black/60">결과 요약을 PNG 또는 PDF 파일로 저장할 수 있습니다.</div>
+            <div className="mt-2 text-xs text-black/50">BDSM 성향 테스트 결과 보고서</div>
+            <div className="mt-1 text-xl font-semibold">상위 성향 요약</div>
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            {createdAtLabel ? <div className="text-xs text-black/50">생성 시각: {createdAtLabel}</div> : null}
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={downloadPng}
+                disabled={isExporting !== null}
+                className="rounded-xl border border-black/15 px-4 py-2 text-sm hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isExporting === "png" ? "PNG 생성 중..." : "PNG 다운로드"}
+              </button>
+              <button
+                type="button"
+                onClick={downloadPdf}
+                disabled={isExporting !== null}
+                className="rounded-xl bg-black px-4 py-2 text-sm text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isExporting === "pdf" ? "PDF 생성 중..." : "PDF 다운로드"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {top3.map((score, idx) => {
+            const meta = traitMeta(score.trait);
+            return (
+              <div key={score.trait} className="rounded-xl border border-black/10 p-3">
+                <div className="text-xs text-black/50">{idx + 1}위</div>
+                <div className="mt-1 font-semibold">{meta.title}</div>
+                <div className="mt-1 text-sm text-black/60">{meta.summary}</div>
+                <div className="mt-2 text-base font-semibold">{formatPercent(score.percent)}</div>
               </div>
             );
           })}
