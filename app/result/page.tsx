@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { TRAITS, type TraitId } from "@/lib/traits";
-import { clearResult, loadResult, type TraitScore } from "@/lib/score";
+import { TRAIT_SCORE_LIMIT, clearResult, loadResult, type TraitScore } from "@/lib/score";
 
 /**
  * ✅ traits.ts 실제 구조에 1:1로 맞춘 메타 getter
@@ -21,10 +21,20 @@ function traitMeta(id: TraitId) {
 }
 
 function Bar({ percent }: { percent: number }) {
-  const p = Math.max(0, Math.min(100, percent));
+  const normalized = Math.max(-150, Math.min(150, percent));
+  const width = Math.abs(normalized / 150) * 50;
+
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-black/10">
-      <div className="h-full bg-black/70" style={{ width: `${p}%` }} />
+    <div className="relative h-2 w-full overflow-hidden rounded-full bg-black/10">
+      <div className="absolute inset-y-0 left-1/2 w-px bg-black/30" />
+      <div
+        className="absolute inset-y-0 bg-black/70"
+        style={
+          normalized >= 0
+            ? { left: "50%", width: `${width}%` }
+            : { right: "50%", width: `${width}%` }
+        }
+      />
     </div>
   );
 }
@@ -50,7 +60,7 @@ function TopCard({ rank, s }: { rank: 1 | 2 | 3; s: TraitScore }) {
           <div className="mt-1 text-2xl font-semibold">{meta.title}</div>
           {meta.summary ? <div className="mt-2 text-sm text-black/60">{meta.summary}</div> : null}
         </div>
-        <div className="text-3xl font-semibold">{s.percent}%</div>
+        <div className="text-3xl font-semibold">{formatTraitPercent(s.percent)}</div>
       </div>
 
       <div className="mt-4">
@@ -83,7 +93,7 @@ function Row({ s }: { s: TraitScore }) {
     <div className="rounded-xl border border-black/10 p-4">
       <div className="flex items-center justify-between gap-4">
         <div className="font-medium">{meta.title}</div>
-        <div className="font-semibold">{s.percent}%</div>
+        <div className="font-semibold">{formatTraitPercent(s.percent)}</div>
       </div>
 
       <div className="mt-2">
@@ -351,7 +361,130 @@ export default function ResultPage() {
     <main className="theme-adaptive mx-auto max-w-3xl px-4 py-8">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">테스트 결과</h1>
-        <p className="mt-1 text-sm text-black/60">상위 3개 성향 + 전체 성향 분포(%)</p>
+        <p className="mt-1 text-sm text-black/60">상위 3개 성향 + 전체 성향 분포(-150% ~ +150%)</p>
+        <p className="mt-2 text-xs text-black/50">
+          점수 해석: 양수(+)가 높을수록 해당 성향이 강하고, 음수(-)가 낮을수록 해당 성향이 약함을 의미합니다.
+        </p>
+      </div>
+
+      <div className="mb-4 rounded-2xl border border-black/10 bg-white p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-semibold">결과지 다운로드</div>
+            <div className="mt-1 text-xs text-black/60">
+              결과 요약을 PNG 또는 PDF 파일로 저장할 수 있습니다.
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={downloadPng}
+              disabled={isExporting !== null}
+              className="rounded-xl border border-black/15 px-4 py-2 text-sm hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isExporting === "png" ? "PNG 생성 중..." : "PNG 다운로드"}
+            </button>
+            <button
+              type="button"
+              onClick={downloadPdf}
+              disabled={isExporting !== null}
+              className="rounded-xl bg-black px-4 py-2 text-sm text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isExporting === "pdf" ? "PDF 생성 중..." : "PDF 다운로드"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div ref={reportRef} className="mb-5 rounded-2xl border border-black/10 bg-white p-5" aria-label="결과 요약 보고서">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="text-xs text-black/50">BDSM 성향 테스트 결과 보고서</div>
+            <div className="mt-1 text-xl font-semibold">상위 성향 요약</div>
+          </div>
+          {createdAtLabel ? <div className="text-xs text-black/50">생성 시각: {createdAtLabel}</div> : null}
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {top3.map((score, idx) => {
+            const meta = traitMeta(score.trait);
+            return (
+              <div key={score.trait} className="rounded-xl border border-black/10 p-3">
+                <div className="text-xs text-black/50">{idx + 1}위</div>
+                <div className="mt-1 font-semibold">{meta.title}</div>
+                <div className="mt-1 text-sm text-black/60">{meta.summary}</div>
+                <div className="mt-2 text-base font-semibold">{formatTraitPercent(score.percent)}</div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 rounded-xl border border-black/10 p-3">
+          <div className="text-sm font-semibold">안전 안내</div>
+          <div className="mt-1 text-xs text-black/70">
+            결과는 참고용이며 현실에서는 합의(consent), 안전, 중단 신호, 사후 케어를 우선하세요.
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-4 rounded-2xl border border-black/10 bg-white p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-semibold">결과지 다운로드</div>
+            <div className="mt-1 text-xs text-black/60">
+              결과 요약을 PNG 또는 PDF 파일로 저장할 수 있습니다.
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={downloadPng}
+              disabled={isExporting !== null}
+              className="rounded-xl border border-black/15 px-4 py-2 text-sm hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isExporting === "png" ? "PNG 생성 중..." : "PNG 다운로드"}
+            </button>
+            <button
+              type="button"
+              onClick={downloadPdf}
+              disabled={isExporting !== null}
+              className="rounded-xl bg-black px-4 py-2 text-sm text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isExporting === "pdf" ? "PDF 생성 중..." : "PDF 다운로드"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div ref={reportRef} className="mb-5 rounded-2xl border border-black/10 bg-white p-5" aria-label="결과 요약 보고서">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="text-xs text-black/50">BDSM 성향 테스트 결과 보고서</div>
+            <div className="mt-1 text-xl font-semibold">상위 성향 요약</div>
+          </div>
+          {createdAtLabel ? <div className="text-xs text-black/50">생성 시각: {createdAtLabel}</div> : null}
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {top3.map((score, idx) => {
+            const meta = traitMeta(score.trait);
+            return (
+              <div key={score.trait} className="rounded-xl border border-black/10 p-3">
+                <div className="text-xs text-black/50">{idx + 1}위</div>
+                <div className="mt-1 font-semibold">{meta.title}</div>
+                <div className="mt-1 text-sm text-black/60">{meta.summary}</div>
+                <div className="mt-2 text-base font-semibold">{score.percent}%</div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 rounded-xl border border-black/10 p-3">
+          <div className="text-sm font-semibold">안전 안내</div>
+          <div className="mt-1 text-xs text-black/70">
+            결과는 참고용이며 현실에서는 합의(consent), 안전, 중단 신호, 사후 케어를 우선하세요.
+          </div>
+        </div>
       </div>
 
 
@@ -424,7 +557,8 @@ export default function ResultPage() {
           >
             <div>
               <div className="text-lg font-semibold">전체 성향 보기 (26)</div>
-              <div className="mt-1 text-sm text-black/60">퍼센트 내림차순으로 표시됩니다.</div>
+              <div className="mt-1 text-sm text-black/60">점수 내림차순으로 표시됩니다. (중립 0%)</div>
+              <div className="mt-1 text-xs text-black/50">양수(+)가 높을수록 강한 성향, 음수(-)가 낮을수록 약한 성향입니다.</div>
             </div>
             <div className="text-sm underline underline-offset-4">{expanded ? "접기" : "펼치기"}</div>
           </button>
