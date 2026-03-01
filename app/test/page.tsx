@@ -29,11 +29,26 @@ function traitMeta(id: TraitId) {
   return { title: t?.nameKo ?? id, summary: t?.oneLiner ?? "" };
 }
 
+function formatTraitPercent(percent: number) {
+  const n = Math.round(percent * 10) / 10;
+  return `${n > 0 ? "+" : ""}${n}%`;
+}
+
 function Bar({ percent }: { percent: number }) {
-  const p = Math.max(0, Math.min(100, percent));
+  const normalized = Math.max(-150, Math.min(150, percent));
+  const width = Math.abs(normalized / 150) * 50;
+
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-black/10">
-      <div className="h-full bg-black/70" style={{ width: `${p}%` }} />
+    <div className="relative h-2 w-full overflow-hidden rounded-full bg-black/10">
+      <div className="absolute inset-y-0 left-1/2 w-px bg-black/30" />
+      <div
+        className="absolute inset-y-0 bg-black/70"
+        style={
+          normalized >= 0
+            ? { left: "50%", width: `${width}%` }
+            : { right: "50%", width: `${width}%` }
+        }
+      />
     </div>
   );
 }
@@ -154,7 +169,10 @@ export default function TestPage() {
           <div className="text-sm text-black/60">1차(가벼운 테스트) 결과</div>
           <h1 className="mt-2 text-2xl font-semibold">가벼운 결과지</h1>
           <p className="mt-2 text-sm text-black/60">
-            1차는 빠른 “탐색용”이며, 정확한 성향 분포(%)는 2차 본 테스트에서 계산됩니다.
+            1차는 빠른 “탐색용”이며, 정확한 성향 분포(-150% ~ +150%)는 2차 본 테스트에서 계산됩니다.
+          </p>
+          <p className="mt-1 text-xs text-black/50">
+            해석 기준: 양수(+)가 높을수록 강한 성향, 음수(-)가 낮을수록 약한 성향입니다.
           </p>
         </div>
 
@@ -189,7 +207,7 @@ export default function TestPage() {
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="font-medium">{meta.title}</div>
-                        <div className="font-semibold">{s.percent}%</div>
+                        <div className="font-semibold">{formatTraitPercent(s.percent)}</div>
                       </div>
                       <div className="mt-2">
                         <Bar percent={s.percent} />
