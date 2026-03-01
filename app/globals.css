@@ -110,3 +110,70 @@ html[data-theme="dark"] .theme-adaptive .bg-black\/10 {
 html[data-theme="dark"] .theme-adaptive .bg-black\/70 {
   background-color: rgba(229, 231, 235, 0.75) !important;
 }
+
+/* Dark-styled pages switch to light palette when light mode is selected. */
+html[data-theme="light"] .theme-surface {
+  background: linear-gradient(180deg, #f6f8ff 0%, #eef2ff 100%);
+  color: #0f172a;
+}
+
+html[data-theme="light"] .theme-surface .bg-\[\#070A10\] {
+  background-color: transparent !important;
+}
+
+html[data-theme="light"] .theme-surface .border-white\/10 {
+  border-color: rgba(15, 23, 42, 0.15) !important;
+}
+
+html[data-theme="light"] .theme-surface .bg-white\/5 {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+}
+
+html[data-theme="light"] .theme-surface .bg-black\/20,
+html[data-theme="light"] .theme-surface .bg-black\/25,
+html[data-theme="light"] .theme-surface .bg-black\/30 {
+  background-color: rgba(15, 23, 42, 0.06) !important;
+}
+
+html[data-theme="light"] .theme-surface .text-white,
+html[data-theme="light"] .theme-surface .text-white\/85,
+html[data-theme="light"] .theme-surface .text-white\/80,
+html[data-theme="light"] .theme-surface .text-white\/75,
+html[data-theme="light"] .theme-surface .text-white\/70,
+html[data-theme="light"] .theme-surface .text-white\/65,
+html[data-theme="light"] .theme-surface .text-white\/55,
+html[data-theme="light"] .theme-surface .text-white\/45,
+html[data-theme="light"] .theme-surface .text-white\/40 {
+  color: #0f172a !important;
+}
+
+/* Light-styled pages switch to dark palette when dark mode is selected. */
+html[data-theme="dark"] .theme-adaptive {
+  color: #e5e7eb;
+}
+
+html[data-theme="dark"] .theme-adaptive .bg-white {
+  background-color: rgba(17, 24, 39, 0.92) !important;
+}
+
+html[data-theme="dark"] .theme-adaptive .border-black\/10,
+html[data-theme="dark"] .theme-adaptive .border-black\/15 {
+  border-color: rgba(229, 231, 235, 0.2) !important;
+}
+
+html[data-theme="dark"] .theme-adaptive .text-black,
+html[data-theme="dark"] .theme-adaptive .text-black\/70,
+html[data-theme="dark"] .theme-adaptive .text-black\/60,
+html[data-theme="dark"] .theme-adaptive .text-black\/50,
+html[data-theme="dark"] .theme-adaptive .text-black\/30 {
+  color: #e5e7eb !important;
+}
+
+html[data-theme="dark"] .theme-adaptive .bg-black\/5,
+html[data-theme="dark"] .theme-adaptive .bg-black\/10 {
+  background-color: rgba(229, 231, 235, 0.1) !important;
+}
+
+html[data-theme="dark"] .theme-adaptive .bg-black\/70 {
+  background-color: rgba(229, 231, 235, 0.75) !important;
+}
