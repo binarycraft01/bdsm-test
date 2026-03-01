@@ -107,7 +107,7 @@ export default function ResultPage() {
 
   if (!payload) {
     return (
-      <main className="mx-auto max-w-2xl px-4 py-10">
+      <main className="theme-adaptive mx-auto max-w-2xl px-4 py-10">
         <h1 className="text-2xl font-semibold">결과</h1>
         <p className="mt-2 text-sm text-black/60">
           결과가 없습니다. 테스트를 먼저 진행해주세요. (결과는 브라우저 세션에만 임시 저장됩니다.)
@@ -129,7 +129,7 @@ export default function ResultPage() {
   const third = top3[2];
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
+    <main className="theme-adaptive mx-auto max-w-3xl px-4 py-8">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">테스트 결과</h1>
         <p className="mt-1 text-sm text-black/60">상위 3개 성향 + 전체 성향 분포(%)</p>
