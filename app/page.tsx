@@ -134,7 +134,7 @@ export default function HomePage() {
             </Link>
 
             <div className="text-center text-xs text-white/55">
-              * 결과는 저장되지 않지만, 완료 후 <span className="text-white/75">PNG/PDF 다운로드</span>는 제공할 예정입니다.
+              * 결과는 저장되지 않지만, 완료 후 <span className="text-white/75">PNG/PDF 다운로드</span>를 바로 이용할 수 있습니다.
             </div>
           </div>
         </section>
