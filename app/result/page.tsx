@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { TRAITS, type TraitId } from "@/lib/traits";
-import { clearResult, loadResult, type TraitScore } from "@/lib/score";
+import { TRAIT_SCORE_LIMIT, clearResult, loadResult, type TraitScore } from "@/lib/score";
 
 /**
  * ✅ traits.ts 실제 구조에 1:1로 맞춘 메타 getter
@@ -21,12 +21,28 @@ function traitMeta(id: TraitId) {
 }
 
 function Bar({ percent }: { percent: number }) {
-  const p = Math.max(0, Math.min(100, percent));
+  const normalized = Math.max(-150, Math.min(150, percent));
+  const width = Math.abs(normalized / 150) * 50;
+
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-black/10">
-      <div className="h-full bg-black/70" style={{ width: `${p}%` }} />
+    <div className="relative h-2 w-full overflow-hidden rounded-full bg-black/10">
+      <div className="absolute inset-y-0 left-1/2 w-px bg-black/30" />
+      <div
+        className="absolute inset-y-0 bg-black/70"
+        style={
+          normalized >= 0
+            ? { left: "50%", width: `${width}%` }
+            : { right: "50%", width: `${width}%` }
+        }
+      />
     </div>
   );
+}
+
+
+function formatTraitPercent(percent: number) {
+  const n = Math.round(percent * 10) / 10;
+  return `${n > 0 ? "+" : ""}${n}%`;
 }
 
 function TopCard({ rank, s }: { rank: 1 | 2 | 3; s: TraitScore }) {
@@ -40,7 +56,7 @@ function TopCard({ rank, s }: { rank: 1 | 2 | 3; s: TraitScore }) {
           <div className="mt-1 text-2xl font-semibold">{meta.title}</div>
           {meta.summary ? <div className="mt-2 text-sm text-black/60">{meta.summary}</div> : null}
         </div>
-        <div className="text-3xl font-semibold">{s.percent}%</div>
+        <div className="text-3xl font-semibold">{formatTraitPercent(s.percent)}</div>
       </div>
 
       <div className="mt-4">
@@ -73,7 +89,7 @@ function Row({ s }: { s: TraitScore }) {
     <div className="rounded-xl border border-black/10 p-4">
       <div className="flex items-center justify-between gap-4">
         <div className="font-medium">{meta.title}</div>
-        <div className="font-semibold">{s.percent}%</div>
+        <div className="font-semibold">{formatTraitPercent(s.percent)}</div>
       </div>
 
       <div className="mt-2">
@@ -243,7 +259,7 @@ export default function ResultPage() {
 
       ctx.fillStyle = "#0f172a";
       ctx.font = "700 34px sans-serif";
-      ctx.fillText(`${score.percent}%`, width - 220, y + 20);
+      ctx.fillText(formatTraitPercent(score.percent), width - 260, y + 20);
     });
 
     const scoreStartY = 640;
@@ -261,12 +277,21 @@ export default function ResultPage() {
 
       ctx.fillStyle = "#0f172a";
       ctx.font = "700 22px sans-serif";
-      ctx.fillText(`${score.percent}%`, width - 170, y);
+      ctx.fillText(formatTraitPercent(score.percent), width - 200, y);
 
       ctx.fillStyle = "#e2e8f0";
       ctx.fillRect(380, y - 16, 680, 12);
+      ctx.fillStyle = "#94a3b8";
+      ctx.fillRect(720, y - 16, 2, 12);
+
+      const normalized = Math.max(-TRAIT_SCORE_LIMIT, Math.min(TRAIT_SCORE_LIMIT, score.percent));
+      const halfWidth = (680 / 2) * (Math.abs(normalized) / TRAIT_SCORE_LIMIT);
       ctx.fillStyle = "#0f172a";
-      ctx.fillRect(380, y - 16, (680 * score.percent) / 100, 12);
+      if (normalized >= 0) {
+        ctx.fillRect(721, y - 16, halfWidth, 12);
+      } else {
+        ctx.fillRect(721 - halfWidth, y - 16, halfWidth, 12);
+      }
     });
 
     return canvas;
@@ -341,7 +366,10 @@ export default function ResultPage() {
     <main className="theme-adaptive mx-auto max-w-3xl px-4 py-8">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">테스트 결과</h1>
-        <p className="mt-1 text-sm text-black/60">상위 3개 성향 + 전체 성향 분포(%)</p>
+        <p className="mt-1 text-sm text-black/60">상위 3개 성향 + 전체 성향 분포(-150% ~ +150%)</p>
+        <p className="mt-2 text-xs text-black/50">
+          점수 해석: 양수(+)가 높을수록 해당 성향이 강하고, 음수(-)가 낮을수록 해당 성향이 약함을 의미합니다.
+        </p>
       </div>
 
       <div className="mb-4 rounded-2xl border border-black/10 bg-white p-4">
@@ -390,7 +418,7 @@ export default function ResultPage() {
                 <div className="text-xs text-black/50">{idx + 1}위</div>
                 <div className="mt-1 font-semibold">{meta.title}</div>
                 <div className="mt-1 text-sm text-black/60">{meta.summary}</div>
-                <div className="mt-2 text-base font-semibold">{score.percent}%</div>
+                <div className="mt-2 text-base font-semibold">{formatTraitPercent(score.percent)}</div>
               </div>
             );
           })}
@@ -420,7 +448,8 @@ export default function ResultPage() {
           >
             <div>
               <div className="text-lg font-semibold">전체 성향 보기 (26)</div>
-              <div className="mt-1 text-sm text-black/60">퍼센트 내림차순으로 표시됩니다.</div>
+              <div className="mt-1 text-sm text-black/60">점수 내림차순으로 표시됩니다. (중립 0%)</div>
+              <div className="mt-1 text-xs text-black/50">양수(+)가 높을수록 강한 성향, 음수(-)가 낮을수록 약한 성향입니다.</div>
             </div>
             <div className="text-sm underline underline-offset-4">{expanded ? "접기" : "펼치기"}</div>
           </button>
